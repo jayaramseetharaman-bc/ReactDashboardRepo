@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.10" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\BrickendonDashboard.Domain\BrickendonDashboard.Domain.csproj" />
+	  <ProjectReference Include="..\BrickendonDashboard.Shared\BrickendonDashboard.Shared.csproj" />
+	  <ProjectReference Include="..\BrickendonDashBoardApi.DBModel\BrickendonDashboard.DbModel.csproj" />
+	</ItemGroup>
+
+</Project>
