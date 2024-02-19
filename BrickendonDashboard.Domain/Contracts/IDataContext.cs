@@ -18,5 +18,7 @@ namespace BrickendonDashboard.Domain.Contracts
 
     public DbSet<UserType> UserType { get; set; }
 
+    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
   }
 }

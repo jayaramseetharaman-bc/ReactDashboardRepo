@@ -10,6 +10,7 @@ namespace BrickendonDashboard.DBModel.Entities
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
    public int  Id { get; set; }
    public UserTypes UserTypes { get; set; }
+  // public int UserTypeId { get; set; }
    public string Description { get; set; } 
 
   // public User User { get; set; }
