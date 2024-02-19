@@ -93,7 +93,44 @@ namespace BrickendonDashboard.Services
       return userListResponseInfo;
 
     }
-    public async Task<UserResponseInfo> CreateUserAsync(UserRequestInfo userRequestInfo)
+
+		public async Task<UserDetails> GetUserAsync(int userId)
+		{
+			var user = await _dataContext.User
+					.Include(u => u.UserRoles)
+					.ThenInclude(ur => ur.Roles)
+					.Where(x => x.IsDeleted == false && x.Id == userId)
+					.FirstOrDefaultAsync();
+
+			if (user == null)
+			{
+				throw new ResourceNotFoundException();
+			}
+
+			var userDto = new UserDto()
+			{
+				UserId = user.Id,
+				UserName = user.FirstName + " " + user.LastName,
+				FirstName = user.FirstName,
+				LastName = user.LastName,
+				Email = user.Email,
+				ContactNumber = user.MobileNumber,
+				Address = user.Address,
+				UserType = user.UserTypeId,
+				IsActive = user.IsActive
+			};
+
+			var roleIds = user.UserRoles.Select(ur => ur.RoleId).ToList();
+
+			return new UserDetails
+			{
+				UserData = userDto,
+				RoleIds = roleIds
+			};
+		}
+
+
+		public async Task<UserResponseInfo> CreateUserAsync(UserRequestInfo userRequestInfo)
     {
       var user = await _dataContext.User
         .FirstOrDefaultAsync(u => !u.IsDeleted && u.Email == userRequestInfo.Email);
@@ -137,10 +174,10 @@ namespace BrickendonDashboard.Services
       };
     }
 
-    public async Task<UserResponseInfo> UpdateUserAsync(UserEditRequestInfo userEditRequestInfo)
+		public async Task<UserResponseInfo> UpdateUserAsync(int userId,UserEditRequestInfo userEditRequestInfo)
     {
       var user = await _dataContext.User
-        .FirstOrDefaultAsync(u => !u.IsDeleted && u.Email == userEditRequestInfo.userRequestInfo.Email);
+        .FirstOrDefaultAsync(u => !u.IsDeleted && u.Email == userEditRequestInfo.userRequestInfo.Email && u.Id== userId);
 
       if (user == null)
       {

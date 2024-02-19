@@ -24,4 +24,10 @@ namespace BrickendonDashboard.Domain.Dtos
     public bool IsActive { get; set; }
 
   }
+
+  public class UserDetails
+  {
+    public UserDto UserData { get; set; }
+    public List<int> RoleIds { get; set; }
+	}
 }
