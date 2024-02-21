@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BrickendonDashboard.DbMigrations.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240215135559_initial_setup")]
+    [Migration("20240221141356_initial_setup")]
     partial class initial_setup
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,33 +21,42 @@ namespace BrickendonDashboard.DbMigrations.Migrations
                 .HasAnnotation("ProductVersion", "5.0.10")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-            modelBuilder.Entity("BrickendonDashboard.DBModel.Entities.Roles", b =>
+            modelBuilder.Entity("BrickendonDashboard.DBModel.Entities.Role", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedOnUtc")
                         .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime>("LastUpdatedOnUtc")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("RoleDescription")
+                    b.Property<string>("Key")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("RoleName")
+                    b.Property<int>("LastUpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("LastUpdatedOnUtc")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Role");
                 });
 
             modelBuilder.Entity("BrickendonDashboard.DBModel.Entities.User", b =>
@@ -60,6 +69,9 @@ namespace BrickendonDashboard.DbMigrations.Migrations
                     b.Property<string>("Address")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedOnUtc")
                         .HasColumnType("timestamp without time zone");
@@ -82,6 +94,9 @@ namespace BrickendonDashboard.DbMigrations.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("LastUpdatedBy")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("LastUpdatedOnUtc")
                         .HasColumnType("timestamp without time zone");
 
@@ -99,18 +114,24 @@ namespace BrickendonDashboard.DbMigrations.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("BrickendonDashboard.DBModel.Entities.UserRoles", b =>
+            modelBuilder.Entity("BrickendonDashboard.DBModel.Entities.UserRole", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedOnUtc")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("LastUpdatedBy")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("LastUpdatedOnUtc")
                         .HasColumnType("timestamp without time zone");
@@ -127,7 +148,7 @@ namespace BrickendonDashboard.DbMigrations.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserRole");
                 });
 
             modelBuilder.Entity("BrickendonDashboard.DBModel.Entities.UserType", b =>
@@ -137,21 +158,31 @@ namespace BrickendonDashboard.DbMigrations.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedOnUtc")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("LastUpdatedBy")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("LastUpdatedOnUtc")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("UserTypes")
-                        .HasColumnType("integer");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -169,28 +200,28 @@ namespace BrickendonDashboard.DbMigrations.Migrations
                     b.Navigation("UserType");
                 });
 
-            modelBuilder.Entity("BrickendonDashboard.DBModel.Entities.UserRoles", b =>
+            modelBuilder.Entity("BrickendonDashboard.DBModel.Entities.UserRole", b =>
                 {
-                    b.HasOne("BrickendonDashboard.DBModel.Entities.Roles", "Roles")
+                    b.HasOne("BrickendonDashboard.DBModel.Entities.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BrickendonDashboard.DBModel.Entities.User", "User")
-                        .WithMany("UserRoles")
+                        .WithMany("UserRole")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Roles");
+                    b.Navigation("Role");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("BrickendonDashboard.DBModel.Entities.User", b =>
                 {
-                    b.Navigation("UserRoles");
+                    b.Navigation("UserRole");
                 });
 #pragma warning restore 612, 618
         }

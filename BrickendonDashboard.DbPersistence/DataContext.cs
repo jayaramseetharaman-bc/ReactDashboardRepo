@@ -1,4 +1,5 @@
 ﻿using BrickendonDashboard.DBModel.Entities;
+using BrickendonDashboard.Domain.Contexts;
 using BrickendonDashboard.Domain.Contracts;
 using BrickendonDashboard.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -11,12 +12,12 @@ namespace BrickendonDashboard.DbPersistence
 
     public class DataContext : DbContext, IDataContext
     {
-      // private readonly RequestContext _requestContext;
+       private readonly RequestContext _requestContext;
       private readonly IDateTimeService _dateTimeService;
-      public DataContext(DbContextOptions<DataContext> options, IDateTimeService dateTimeService)
+      public DataContext(DbContextOptions<DataContext> options, IDateTimeService dateTimeService,RequestContext requestContext)
               : base(options)
       {
-        //_requestContext = requestContext;
+        _requestContext = requestContext;
         _dateTimeService = dateTimeService;
       }
 
@@ -50,9 +51,9 @@ namespace BrickendonDashboard.DbPersistence
 
       public DbSet<User> User { get; set; }
 
-      public DbSet<Roles> Roles { get; set; }
+      public DbSet<Role> Role { get; set; }
 
-      public DbSet<UserRoles> UserRoles { get; set; }
+      public DbSet<UserRole> UserRole { get; set; }
 
       public DbSet<UserType> UserType { get; set; }
 
@@ -88,12 +89,12 @@ namespace BrickendonDashboard.DbPersistence
           if (entry.State == EntityState.Added)
           {
             entry.Entity.CreatedOnUtc = entry.Entity.LastUpdatedOnUtc = _dateTimeService.GetUTCNow();
-            // entry.Entity.CreatedUserId = entry.Entity.LastUpdatedUserId = _requestContext.UserId;
+             entry.Entity.CreatedBy = entry.Entity.LastUpdatedBy = _requestContext.UserId;
           }
           else
           {
             entry.Entity.LastUpdatedOnUtc = _dateTimeService.GetUTCNow();
-            //entry.Entity.LastUpdatedUserId = _requestContext.UserId;
+            entry.Entity.LastUpdatedBy = _requestContext.UserId;
           }
         }
       }

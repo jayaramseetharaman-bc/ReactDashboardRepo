@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BrickendonDashboard.DBModel.Entities
 {
-  public class UserRoles : BaseEntity
+  public class UserRole : BaseEntity
   {
 
     [Key]
@@ -14,9 +14,9 @@ namespace BrickendonDashboard.DBModel.Entities
     public int UserId { get; set; }  
     public User User { get; set; }    
 
-    [ForeignKey("Roles")]
+    [ForeignKey("Role")]
     public int RoleId { get; set; }   
-    public Roles Roles { get; set; }
+    public Role Role { get; set; }
 
   }
 }

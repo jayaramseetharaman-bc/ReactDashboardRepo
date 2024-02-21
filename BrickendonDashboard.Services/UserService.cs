@@ -97,8 +97,8 @@ namespace BrickendonDashboard.Services
 		public async Task<UserDetails> GetUserAsync(int userId)
 		{
 			var user = await _dataContext.User
-					.Include(u => u.UserRoles)
-					.ThenInclude(ur => ur.Roles)
+					.Include(u => u.UserRole)
+					.ThenInclude(ur => ur.Role)
 					.Where(x => x.IsDeleted == false && x.Id == userId)
 					.FirstOrDefaultAsync();
 
@@ -120,7 +120,7 @@ namespace BrickendonDashboard.Services
 				IsActive = user.IsActive
 			};
 
-			var roleIds = user.UserRoles.Select(ur => ur.RoleId).ToList();
+			var roleIds = user.UserRole.Select(ur => ur.RoleId).ToList();
 
 			return new UserDetails
 			{
@@ -157,12 +157,12 @@ namespace BrickendonDashboard.Services
       {
         foreach (var roleId in userRequestInfo.RoleIds)
         {
-          var userRole = new UserRoles
+          var userRole = new UserRole
           {
             UserId = user.Id,
             RoleId = roleId
           };
-          _dataContext.UserRoles.Add(userRole);
+          _dataContext.UserRole.Add(userRole);
         }
         await _dataContext.SaveChangesAsync();
       }
@@ -192,22 +192,22 @@ namespace BrickendonDashboard.Services
       user.UserTypeId = userEditRequestInfo.userRequestInfo.UserTypeId;
       user.IsActive = userEditRequestInfo.IsActive;
 
-      var existingUserRoles = await _dataContext.UserRoles
+      var existingUserRoles = await _dataContext.UserRole
       .Where(ur => ur.UserId == user.Id)
       .ToListAsync();
 
-      _dataContext.UserRoles.RemoveRange(existingUserRoles);
+      _dataContext.UserRole.RemoveRange(existingUserRoles);
 
       if (userEditRequestInfo.userRequestInfo.RoleIds != null && userEditRequestInfo.userRequestInfo.RoleIds.Any())
       {
         foreach (var roleId in userEditRequestInfo.userRequestInfo.RoleIds)
         {
-          var userRole = new UserRoles
+          var userRole = new UserRole
           {
             UserId = user.Id,
             RoleId = roleId
           };
-          _dataContext.UserRoles.Add(userRole);
+          _dataContext.UserRole.Add(userRole);
         }
       }
 
@@ -225,14 +225,14 @@ namespace BrickendonDashboard.Services
     public async Task DeleteUser(int userId)
     {
       var user = await _dataContext.User
-        .Include(x => x.UserRoles)
+        .Include(x => x.UserRole)
         .Where(x => x.Id == userId).FirstOrDefaultAsync();
       if (user != null)
       {
         user.IsDeleted = true;
         user.IsActive = false;
 
-        foreach (var userRole in user.UserRoles)
+        foreach (var userRole in user.UserRole)
         {
           userRole.IsDeleted = true;
         }

@@ -13,5 +13,9 @@ namespace BrickendonDashboard.DBModel.Entities
     public DateTime LastUpdatedOnUtc { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public int CreatedBy { get; set; }
+
+    public int LastUpdatedBy { get; set; }
   }
 }

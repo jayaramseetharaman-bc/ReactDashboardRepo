@@ -12,9 +12,9 @@ namespace BrickendonDashboard.Domain.Contracts
   {
     public DbSet<User> User { get; set; }
 
-    public DbSet<Roles> Roles { get; set; }
+    public DbSet<Role> Role { get; set; }
 
-    public DbSet<UserRoles> UserRoles { get; set; }
+    public DbSet<UserRole> UserRole { get; set; }
 
     public DbSet<UserType> UserType { get; set; }
 

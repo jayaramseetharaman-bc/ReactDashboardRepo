@@ -1,4 +1,5 @@
 ﻿using BrickendonDashboard.DbPersistence;
+using BrickendonDashboard.Domain.Contexts;
 using BrickendonDashboard.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -21,7 +22,7 @@ namespace BrickendonDashboard.DbMigrations
         o.MigrationsAssembly(typeof(DesignTimeDataContextFactory).Assembly.FullName);
       });
 
-      var context = new DataContext(optionsBuilder.Options, new DateTimeService());
+      var context = new DataContext(optionsBuilder.Options, new DateTimeService(), new RequestContext { UserId = 0 });
 
       return context;
     }

@@ -15,13 +15,9 @@ namespace BrickendonDashboard.DBModel.Entities
     public string Address { get; set; }
     public UserType UserType { get; set; }
 
-    [ForeignKey("UserTypeId")]
+    [ForeignKey("UserType")]
     public int UserTypeId { get; set; }
-
-    public List<UserRoles> UserRoles { get; set; }
-
-    //[ForeignKey("UserRoleId")]
-    //public int UserRoleId { get; set; }
+    public List<UserRole> UserRole { get; set; }
 
     public bool IsActive { get; set; }
 

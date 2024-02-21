@@ -1,4 +1,5 @@
 using BrickendonDashboard.DbPersistence;
+using BrickendonDashboard.Domain.Contexts;
 using BrickendonDashboard.Domain.Contracts;
 using BrickendonDashboard.Services;
 using BrickendonDashboard.Shared.Contracts;
@@ -13,13 +14,14 @@ builder.Services.AddCors(options =>
   options.AddPolicy("AllowOrigin",
     builder => builder.WithOrigins("http://localhost:3000")
     .AllowAnyMethod()
-    .AllowAnyHeader());
+    .AllowAnyHeader()
+    );
 });
-
 builder.Services.AddControllers();
 builder.Configuration.AddJsonFile("appsettings.json");
 builder.Services.AddScoped<IDateTimeService, DateTimeService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<RequestContext>();
 builder.Services.AddScoped<IDataContext, DataContext>();
 builder.Services.AddDbContext<DataContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnection")));
 
