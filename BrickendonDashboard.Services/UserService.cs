@@ -17,82 +17,85 @@ namespace BrickendonDashboard.Services
     }
 
 
-    public async Task<UserListResponseInfo> GetUsersWithPaginationAsync(UserListFilterCriteria userListFilterCriteria)
-    {
-      UserListResponseInfo userListResponseInfo = new UserListResponseInfo();
-      Expression<Func<UserDto, object>> sortExpression = null;
-      var searchKeyword = userListFilterCriteria.SearchKeyword;
-      var sortBy = userListFilterCriteria.SortBy;
-      var sortOrder = userListFilterCriteria.SortOrder;
+		public async Task<UserListResponseInfo> GetUsersWithPaginationAsync(UserListFilterCriteria userListFilterCriteria)
+		{
+			UserListResponseInfo userListResponseInfo = new UserListResponseInfo();
+			Expression<Func<UserWithRolesDto, object>> sortExpression = null;
+			var searchKeyword = userListFilterCriteria.SearchKeyword;
+			var sortBy = userListFilterCriteria.SortBy;
+			var sortOrder = userListFilterCriteria.SortOrder;
 
-      IQueryable<User> userQuery = null;
+			IQueryable<User> userQuery = null;
 
-      userQuery = _dataContext.User
-        .Where(x => x.IsDeleted == false);
+			userQuery = _dataContext.User
+					.Where(x => x.IsDeleted == false);
 
-      if (userQuery == null)
-      {
-        throw new ResourceNotFoundException();
-      }
+			if (userQuery == null)
+			{
+				throw new ResourceNotFoundException();
+			}
 
-      if (searchKeyword != null)
-      {
-        userQuery = userQuery.Where(u => u.Email.Contains(searchKeyword) || (u.FirstName + " " + u.LastName).ToLower().Contains(searchKeyword));
+			if (searchKeyword != null)
+			{
+				userQuery = userQuery.Where(u => u.Email.Contains(searchKeyword) || (u.FirstName + " " + u.LastName).ToLower().Contains(searchKeyword));
 
-      }
+			}
 
-      var userDtoQuery = userQuery.Select(user => new UserDto()
-      {
-        UserId = user.Id,
-        UserName = user.FirstName + " " + user.LastName,
-        FirstName = user.FirstName,
-        LastName = user.LastName,
-        Email = user.Email,
-        ContactNumber = user.MobileNumber,
-        Address = user.Address,
-        UserType = user.UserTypeId,
-        IsActive = user.IsActive
-      });
-      switch (sortBy)
-      {
-        case "userEmail":
-          sortExpression = u => u.Email;
-          break;
-        case "userId":
-          sortExpression = u => u.UserId;
-          break;
-        case "userName":
-          sortExpression = u => u.UserName;
-          break;
-        default:
-          sortExpression = u => u.UserName;
-          break;
-      }
-      IOrderedQueryable<UserDto> sortedUserDtoQuery;
-      if (sortOrder == "DESC")
-      {
-        sortedUserDtoQuery = userDtoQuery.OrderByDescending(sortExpression);
-      }
-      else
-      {
-        sortedUserDtoQuery = userDtoQuery.OrderBy(sortExpression);
-      }
+			var userDtoQuery = userQuery.Select(user => new UserWithRolesDto() 
+			{
+				UserId = user.Id,
+				UserName = user.FirstName + " " + user.LastName,
+				FirstName = user.FirstName,
+				LastName = user.LastName,
+				Email = user.Email,
+				ContactNumber = user.MobileNumber,
+				Address = user.Address,
+				UserType = user.UserTypeId,
+				IsActive = user.IsActive,
+				RoleIds = user.UserRole.Select(ur => ur.RoleId).ToList() 
+			});
 
-      var currentPage = userListFilterCriteria.PageIndex;
-      var pageSize = userListFilterCriteria.PageSize;
-      var skipCount = (currentPage - 1) * pageSize;
-      var rowCount = await sortedUserDtoQuery.CountAsync();
-      var userDtoList = await sortedUserDtoQuery.Skip(skipCount).Take(pageSize).ToListAsync();
-      var pageCount = (double)rowCount / pageSize;
+			switch (sortBy)
+			{
+				case "userEmail":
+					sortExpression = u => u.Email;
+					break;
+				case "userId":
+					sortExpression = u => u.UserId;
+					break;
+				case "userName":
+					sortExpression = u => u.UserName;
+					break;
+				default:
+					sortExpression = u => u.UserName;
+					break;
+			}
 
-      userListResponseInfo.CurrentPage = currentPage;
-      userListResponseInfo.PageCount = (int)Math.Ceiling(pageCount);
-      userListResponseInfo.RowCount = rowCount;
-      userListResponseInfo.UserList = userDtoList ?? new List<UserDto>();
+			IOrderedQueryable<UserWithRolesDto> sortedUserDtoQuery;
+			if (sortOrder == "DESC")
+			{
+				sortedUserDtoQuery = userDtoQuery.OrderByDescending(sortExpression);
+			}
+			else
+			{
+				sortedUserDtoQuery = userDtoQuery.OrderBy(sortExpression);
+			}
 
-      return userListResponseInfo;
+			var currentPage = userListFilterCriteria.PageIndex;
+			var pageSize = userListFilterCriteria.PageSize;
+			var skipCount = (currentPage - 1) * pageSize;
+			var rowCount = await sortedUserDtoQuery.CountAsync();
+			var userDtoList = await sortedUserDtoQuery.Skip(skipCount).Take(pageSize).ToListAsync();
+			var pageCount = (double)rowCount / pageSize;
 
-    }
+			userListResponseInfo.CurrentPage = currentPage;
+			userListResponseInfo.PageCount = (int)Math.Ceiling(pageCount);
+			userListResponseInfo.RowCount = rowCount;
+			userListResponseInfo.UserList = userDtoList ?? new List<UserWithRolesDto>(); 
+
+			return userListResponseInfo;
+
+		}
 
 		public async Task<UserDetails> GetUserAsync(int userId)
 		{
