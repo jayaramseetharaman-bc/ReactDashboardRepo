@@ -33,9 +33,9 @@ namespace BrickendonDashboard.Services
 				filters.Add("Roles", userListFilterCriteria.SearchByRoles);
 			}
 
-			if (userListFilterCriteria.IsActiveFilter.HasValue)
+			if (userListFilterCriteria.SearchByStatus.HasValue)
 			{
-				filters.Add("IsActive", userListFilterCriteria.IsActiveFilter.Value);
+				filters.Add("IsActive", userListFilterCriteria.SearchByStatus.Value);
 			}
 
 			IQueryable<User> userQuery = null;

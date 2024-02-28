@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,9 @@ namespace BrickendonDashboard.Domain.Dtos
 {
   public class UserListFilterCriteria : BaseFilterCriteria
   {
-		public List<int>? SearchByRoles { get; set; } 
-		public bool? IsActiveFilter { get; set; }
+		[FromQuery]
+		public List<int>? SearchByRoles { get; set; }
+    [FromQuery]
+    public bool? SearchByStatus { get; set; }
 	}
 }
