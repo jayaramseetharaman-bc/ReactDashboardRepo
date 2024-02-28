@@ -8,6 +8,7 @@ namespace BrickendonDashboard.Domain.Dtos
 {
   public class UserListFilterCriteria : BaseFilterCriteria
   {
-
-  }
+		public List<int>? SearchByRoles { get; set; } 
+		public bool? IsActiveFilter { get; set; }
+	}
 }

@@ -24,6 +24,19 @@ namespace BrickendonDashboard.Services
 			var searchKeyword = userListFilterCriteria.SearchKeyword;
 			var sortBy = userListFilterCriteria.SortBy;
 			var sortOrder = userListFilterCriteria.SortOrder;
+			var filters = new Dictionary<string, object>();
+			//var rolesFilter = userListFilterCriteria.SearchByRoles; 
+			//var isActive = userListFilterCriteria.IsActiveFilter;
+
+			if (userListFilterCriteria.SearchByRoles != null && userListFilterCriteria.SearchByRoles.Any())
+			{
+				filters.Add("Roles", userListFilterCriteria.SearchByRoles);
+			}
+
+			if (userListFilterCriteria.IsActiveFilter.HasValue)
+			{
+				filters.Add("IsActive", userListFilterCriteria.IsActiveFilter.Value);
+			}
 
 			IQueryable<User> userQuery = null;
 
@@ -40,6 +53,31 @@ namespace BrickendonDashboard.Services
 				userQuery = userQuery.Where(u => u.Email.Contains(searchKeyword) || (u.FirstName + " " + u.LastName).ToLower().Contains(searchKeyword));
 
 			}
+
+			foreach (var filter in filters)
+			{
+				switch (filter.Key)
+				{
+					case "Roles":
+						var rolesFilter = (List<int>)filter.Value;
+						userQuery = userQuery.Where(u => u.UserRole.Any(ur => rolesFilter.Contains(ur.RoleId)));
+						break;
+					case "IsActive":
+						var isActive = (bool)filter.Value;
+						userQuery = userQuery.Where(u => u.IsActive == isActive);
+						break;
+
+				}
+			}
+
+			//if (rolesFilter != null && rolesFilter.Any())
+			//{
+			//	userQuery = userQuery.Where(u => u.UserRole.Any(ur => rolesFilter.Contains(ur.RoleId)));
+			//}
+			//if (isActive.HasValue)
+			//{
+			//	userQuery = userQuery.Where(u => u.IsActive == isActive.Value);
+			//}
 
 			var userDtoQuery = userQuery.Select(user => new UserWithRolesDto() 
 			{
