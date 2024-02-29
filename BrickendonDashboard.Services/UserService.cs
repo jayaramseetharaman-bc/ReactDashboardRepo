@@ -178,7 +178,7 @@ namespace BrickendonDashboard.Services
 
       if (user != null)
       {
-        throw new ResourceAlreadyExistsException();
+        throw new ResourceAlreadyExistsException("Email Already Exists");
       }
       user = new User
       {

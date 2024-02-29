@@ -1,3 +1,4 @@
+using BrickendonDashboard.Api.Middleware;
 using BrickendonDashboard.DbPersistence;
 using BrickendonDashboard.Domain.Contexts;
 using BrickendonDashboard.Domain.Contracts;
@@ -39,6 +40,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<CommonExceptionHandlerMiddleware>();
 
 app.UseAuthorization();
 
