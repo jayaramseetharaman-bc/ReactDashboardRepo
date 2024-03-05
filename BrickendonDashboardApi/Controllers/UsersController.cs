@@ -1,11 +1,13 @@
 using BrickendonDashboard.Domain.Contracts;
 using BrickendonDashboard.Domain.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace BrickendonDashboardApi.Controllers
 {
+ // [Authorize]
   [EnableCors("AllowOrigin")]
   [ApiController]
   [Route("users")]

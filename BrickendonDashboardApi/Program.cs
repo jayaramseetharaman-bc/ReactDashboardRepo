@@ -5,7 +5,9 @@ using BrickendonDashboard.Domain.Contracts;
 using BrickendonDashboard.Services;
 using BrickendonDashboard.Shared.Contracts;
 using BrickendonDashboard.Shared.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using static BrickendonDashboard.Api.Middleware.AuthenticationMiddleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +27,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<RequestContext>();
 builder.Services.AddScoped<IDataContext, DataContext>();
 builder.Services.AddDbContext<DataContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnection")));
-
+builder.Services.AddHttpContextAccessor();
+//builder.Services.AddAuthentication("CustomAuthenticationScheme").AddScheme<AuthenticationSchemeOptions, CustomAuthenticationHandler>("CustomAuthenticationScheme", null);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
@@ -42,6 +45,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseMiddleware<CommonExceptionHandlerMiddleware>();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
