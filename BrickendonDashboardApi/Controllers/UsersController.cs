@@ -7,7 +7,6 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace BrickendonDashboardApi.Controllers
 {
- // [Authorize]
   [EnableCors("AllowOrigin")]
   [ApiController]
   [Route("users")]
@@ -170,5 +169,27 @@ namespace BrickendonDashboardApi.Controllers
 
     }
 
-  }
+
+		/// <summary>
+		/// Check if user exists 
+		/// </summary>
+		/// <response  code="200">Ok</response>
+		/// <response  code="401">Unauthorised</response>
+		/// <response  code="403">Forbidden</response>
+		/// <response  code="404">Not found</response>
+		/// <response  code="400">Bad request</response>
+		/// <remarks>
+		/// Sample request:
+		///
+		///     Get /users/user-exist?user-id=user@mail.com
+		/// </remarks>
+		[HttpGet("user-exist")]
+		[SwaggerOperation(Tags = new[] { "User" })]
+		[ProducesResponseType(typeof(bool), 200)]
+		public async Task<bool> IsUserExistAsync([FromQuery(Name = "user-id")] string userId)
+		{
+			return await _userService.IsUserExist(userId);
+		}
+
+	}
 }

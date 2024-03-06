@@ -282,5 +282,12 @@ namespace BrickendonDashboard.Services
       }
 
     }
-  }
+
+		public async Task<bool> IsUserExist(string userName)
+		{
+			var user = await _dataContext.User.FirstOrDefaultAsync(u => !u.IsDeleted && u.Email.ToLower() == userName.ToLower());
+
+			return user != null;
+		}
+	}
 }
