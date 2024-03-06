@@ -2,15 +2,18 @@ using BrickendonDashboard.Api.Middleware;
 using BrickendonDashboard.DbPersistence;
 using BrickendonDashboard.Domain.Contexts;
 using BrickendonDashboard.Domain.Contracts;
+using BrickendonDashboard.Domain.Dtos;
 using BrickendonDashboard.Services;
 using BrickendonDashboard.Shared.Contracts;
 using BrickendonDashboard.Shared.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
-using static BrickendonDashboard.Api.Middleware.AuthenticationMiddleware;
+using static BrickendonDashboard.Domain.Dtos.ApplicationConfigurationInfo;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
+IConfiguration configuration = builder.Configuration;
 // Add services to the container.
 builder.Services.AddCors(options =>
 {
@@ -28,26 +31,39 @@ builder.Services.AddScoped<RequestContext>();
 builder.Services.AddScoped<IDataContext, DataContext>();
 builder.Services.AddDbContext<DataContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnection")));
 builder.Services.AddHttpContextAccessor();
-//builder.Services.AddAuthentication("CustomAuthenticationScheme").AddScheme<AuthenticationSchemeOptions, CustomAuthenticationHandler>("CustomAuthenticationScheme", null);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton(s =>
+{
+  ApplicationConfigurationInfo appConfigInfo = new ApplicationConfigurationInfo()
+  {
+    ApiKey = configuration["ApiKey"].ToString(),
+    JwtTokenValidationInfo = new JwtTokenValidationConfigurationInfo()
+    {
+      Audience = configuration["AzureAd:Audience"],
+      Issuer = configuration["AzureAd:Issuer"]
+    }
+
+  };
+  return appConfigInfo;
+});
+
 var app = builder.Build();
-app.UseRouting();
-app.UseCors();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-  
+
   app.UseSwagger();
   app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors();
 app.UseMiddleware<CommonExceptionHandlerMiddleware>();
-
+app.UseMiddleware<AuthenticatorMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

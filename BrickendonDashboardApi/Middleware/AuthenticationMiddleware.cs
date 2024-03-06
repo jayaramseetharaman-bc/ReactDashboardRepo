@@ -1,121 +1,105 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using BrickendonDashboard.Domain.Contexts;
+using BrickendonDashboard.Domain.Dtos;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
+using static System.Net.WebRequestMethods;
 
 namespace BrickendonDashboard.Api.Middleware
 {
-  public class AuthenticationMiddleware
+  public class AuthenticatorMiddleware
   {
-    public class CustomAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+     private RequestDelegate _next;
+     private readonly ApplicationConfigurationInfo _appConfig;
+
+    public AuthenticatorMiddleware(RequestDelegate next, ApplicationConfigurationInfo appConfig)
     {
-      private readonly IHttpContextAccessor _httpContextAccessor;
+      _next=next;
+      _appConfig=appConfig;
+    }
 
-      public CustomAuthenticationHandler(
-          IOptionsMonitor<AuthenticationSchemeOptions> options,
-          ILoggerFactory logger,
-          UrlEncoder encoder,
-          ISystemClock clock,
-          IHttpContextAccessor httpContextAccessor) : base(options, logger, encoder, clock)
+    public async Task Invoke (HttpContext context, RequestContext requestContext)
+    {
+      var apiKey = context.Request.Headers["X-API-Key"];
+      var bearerToken = context.Request.Headers["Authorization"].FirstOrDefault();
+      requestContext.apiKey = apiKey;
+
+
+      if (string.IsNullOrWhiteSpace(bearerToken) && (string.IsNullOrEmpty(apiKey) || (apiKey != _appConfig.ApiKey)))
       {
-        _httpContextAccessor = httpContextAccessor;
+        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
       }
-
-      protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
+      else
       {
-        var request = _httpContextAccessor.HttpContext.Request;
-
-        // Check for API key in header
-        var apiKey = request.Headers["X-API-KEY"].FirstOrDefault();
-        if (!string.IsNullOrEmpty(apiKey))
+        // validate bearer token
+        if (!string.IsNullOrEmpty(bearerToken))
         {
-          if (IsValidApiKey(apiKey))
+          var token = bearerToken?.Split(' ').Last();
+
+          if (token!= null)
           {
-            var claims = new[] { new Claim(ClaimTypes.Name, "APIUser") };
-            var identity = new ClaimsIdentity(claims, Scheme.Name);
-            var principal = new ClaimsPrincipal(identity);
-            var ticket = new AuthenticationTicket(principal, Scheme.Name);
-            return AuthenticateResult.Success(ticket);
+            var IsValidToken = await ValidateMsToken(token,_appConfig.JwtTokenValidationInfo.Audience,_appConfig.JwtTokenValidationInfo.Issuer);
+
+            if (!IsValidToken)
+            {
+              throw new UnauthorizedAccessException();
+            }
           }
           else
           {
-            return AuthenticateResult.Fail("Invalid API key");
+            throw new UnauthorizedAccessException();
           }
+          await _next(context);
         }
-
-        // Check for JWT bearer token
-        // var jwtToken = await request.HttpContext.GetTokenAsync("Bearer", "access_token");
-        var bearerToken = request.Headers["Authorization"].FirstOrDefault();
-        var jwtToken = bearerToken?.Split(' ').Last();
-        if (!string.IsNullOrEmpty(jwtToken))
-        {
-          // Validate and parse JWT token
-          if (IsValidJwtToken(jwtToken))
-          {
-            // Parse claims from JWT token
-            var claims = ParseClaimsFromJwtToken(jwtToken);
-            var identity = new ClaimsIdentity(claims, Scheme.Name);
-            var principal = new ClaimsPrincipal(identity);
-            var ticket = new AuthenticationTicket(principal, Scheme.Name);
-            return AuthenticateResult.Success(ticket);
-          }
-          else
-          {
-            return AuthenticateResult.Fail("Invalid JWT token");
-          }
-        }
-
-        // No valid token found
-        return AuthenticateResult.NoResult();
       }
 
-      private bool IsValidApiKey(string apiKey)
+    }
+    public async Task <bool> ValidateMsToken(string token,string audience,string issuer)
+    {
+      var tokenHandler = new JwtSecurityTokenHandler();
+      var validationParameters = new TokenValidationParameters
       {
-        // Implement logic to validate API key
-        return apiKey == "YOUR_API_KEY";
-      }
+        ValidateAudience = true,
+        ValidAudience = audience,
+        ValidateIssuer = true,
+        ValidIssuer = issuer,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = false,
+        SignatureValidator = delegate (string token, TokenValidationParameters parameters)
+        {
+          var jwt = new JwtSecurityToken(token);
 
-      private bool IsValidJwtToken(string jwtToken)
+          return jwt;
+        },
+      };
+      try
       {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var validationParameters = new TokenValidationParameters
-        {
-          ValidateAudience = true,
-         // ValidAudience = "http://localhost:3000/",
-          ValidAudience = "00000003-0000-0000-c000-000000000000",
-          ValidateIssuer = false,
-          ValidateLifetime = true,
-          ValidateSignatureLast =false
-        };
-        try
-        {
-          SecurityToken validatedToken;
-          var principal = tokenHandler.ValidateToken(jwtToken, validationParameters, out validatedToken);
-          return true;
-        }
-        catch (SecurityTokenExpiredException ex)
-        {
-          Console.WriteLine(ex.ToString());
-          // Token is expired
-          return false;
-        }
-        catch (Exception ex)
-        {
-          Console.WriteLine(ex.ToString());
-          return false;
-
-        }
+        SecurityToken validatedToken;
+        var principal = tokenHandler.ValidateToken(token, validationParameters, out validatedToken);
+        return true;
       }
-
-      private IEnumerable<Claim> ParseClaimsFromJwtToken(string jwtToken)
+      catch (SecurityTokenExpiredException ex)
       {
-        // Implement logic to parse claims from JWT token
-        // For example, use a JWT library to parse the token
-        return new List<Claim>(); // Dummy implementation
+        Console.WriteLine(ex.ToString());
+        // Token is expired
+        return false;
       }
+      catch (Exception ex)
+      {
+        Console.WriteLine(ex.ToString());
+        return false;
+
+      }
+
     }
 
   }
