@@ -1,4 +1,5 @@
 ﻿using BrickendonDashboard.DBModel.Entities;
+using BrickendonDashboard.Domain.Dtos;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,9 @@ namespace BrickendonDashboard.Domain.Contracts
     public DbSet<UserType> UserType { get; set; }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    public IQueryable<T> GetSortedResult<T>(IQueryable<T> query, string? sortBy, string? sortOrder) where T : User;
+    public Task<PagedResultSet<T>> GetPagedResultAsync<T>(IQueryable<T> query, ResultSetCriteria resultSetCriteria);
 
   }
 }

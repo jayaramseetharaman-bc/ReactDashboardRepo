@@ -1,6 +1,7 @@
 ﻿using BrickendonDashboard.DBModel.Entities;
 using BrickendonDashboard.Domain.Contexts;
 using BrickendonDashboard.Domain.Contracts;
+using BrickendonDashboard.Domain.Dtos;
 using BrickendonDashboard.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -32,22 +33,38 @@ namespace BrickendonDashboard.DbPersistence
             .ValueGeneratedOnAdd();
       }
 
-      //public async Task<PagedResultSet<T>> GetPagedResultAsync<T>(IQueryable<T> query, ResultSetCriteria resultSetCriteria)
-      //{
-      //  var currentPage = resultSetCriteria.CurrentPage;
-      //  var pageSize = resultSetCriteria.PageSize;
+    public async Task<PagedResultSet<T>> GetPagedResultAsync<T>(IQueryable<T> query, ResultSetCriteria resultSetCriteria)
+    {
+      var currentPage = resultSetCriteria.CurrentPage;
+      var pageSize = resultSetCriteria.PageSize;
 
-      //  var result = new PagedResultSet<T>
-      //  {
-      //    CurrentPage = currentPage,
-      //    RowCount = await query.CountAsync()
-      //  };
-      //  var pageCount = (double)result.RowCount / pageSize;
-      //  result.PageCount = (int)Math.Ceiling(pageCount);
-      //  var skip = (currentPage - 1) * pageSize;
-      //  result.Results = await query.Skip(skip).Take(pageSize).ToListAsync();
-      //  return result;
-      //}
+      var result = new PagedResultSet<T>
+      {
+        CurrentPage = currentPage,
+        RowCount = await query.CountAsync()
+      };
+      var pageCount = (double)result.RowCount / pageSize;
+      result.PageCount = (int)Math.Ceiling(pageCount);
+      var skip = (currentPage - 1) * pageSize;
+      result.Results = await query.Skip(skip).Take(pageSize).ToListAsync();
+      return result;
+    }
+
+
+    public IQueryable<T> GetSortedResult<T> (IQueryable<T> query, string? sortBy,string? sortOrder) where T : User
+    {
+      switch (sortBy)
+      {
+        case "email":
+          return sortOrder == "DESC" ? query.OrderByDescending(u => u.Email) : query.OrderBy(u => u.Email);
+        case "userId":
+          return sortOrder == "DESC" ? query.OrderByDescending(u => u.Id) : query.OrderBy(u => u.Id);
+        case "userName":
+          return sortOrder == "DESC" ? query.OrderByDescending(u => u.FirstName + " " + u.LastName) : query.OrderBy(u => u.FirstName + " " + u.LastName);
+        default:
+          return  query.OrderBy(u => u.FirstName + " " + u.LastName);
+      }
+    }
 
       public DbSet<User> User { get; set; }
 

@@ -58,10 +58,9 @@ namespace BrickendonDashboard.Api.Middleware
           {
             throw new UnauthorizedAccessException();
           }
-          await _next(context);
         }
       }
-
+      await _next(context);
     }
     public async Task <bool> ValidateMsToken(string token,string audience,string issuer)
     {

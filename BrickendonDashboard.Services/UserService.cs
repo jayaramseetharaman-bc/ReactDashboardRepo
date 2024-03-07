@@ -17,125 +17,72 @@ namespace BrickendonDashboard.Services
     }
 
 
-		public async Task<UserListResponseInfo> GetUsersWithPaginationAsync(UserListFilterCriteria userListFilterCriteria)
-		{
-			UserListResponseInfo userListResponseInfo = new UserListResponseInfo();
-			Expression<Func<UserWithRolesDto, object>> sortExpression = null;
-			var searchKeyword = userListFilterCriteria.SearchKeyword;
-			var sortBy = userListFilterCriteria.SortBy;
-			var sortOrder = userListFilterCriteria.SortOrder;
-			var filters = new Dictionary<string, object>();
-			//var rolesFilter = userListFilterCriteria.SearchByRoles; 
-			//var isActive = userListFilterCriteria.IsActiveFilter;
+    public async Task<UserListResponseInfo> GetUsersWithPaginationAsync(UserListFilterCriteria userListFilterCriteria)
+    {
+      var searchKeyword = userListFilterCriteria.SearchKeyword;
+      var sortBy = userListFilterCriteria.SortBy;
+      var sortOrder = userListFilterCriteria.SortOrder;
 
-			if (userListFilterCriteria.SearchByRoles != null && userListFilterCriteria.SearchByRoles.Any())
-			{
-				filters.Add("Roles", userListFilterCriteria.SearchByRoles);
-			}
+      IQueryable<User> userQuery = null;
 
-			if (userListFilterCriteria.SearchByStatus.HasValue)
-			{
-				filters.Add("IsActive", userListFilterCriteria.SearchByStatus.Value);
-			}
+      userQuery = _dataContext.User
+        .Include(u => u.UserRole)
+          .ThenInclude(ur => ur.Role)
+          .Where(x => x.IsDeleted == false);
 
-			IQueryable<User> userQuery = null;
+      if (userQuery == null)
+      {
+        throw new ResourceNotFoundException();
+      }
 
-			userQuery = _dataContext.User
-					.Where(x => x.IsDeleted == false);
+      if (searchKeyword != null)
+      {
+        userQuery = userQuery.Where(u => u.Email.Contains(searchKeyword) || (u.FirstName + " " + u.LastName).ToLower().Contains(searchKeyword));
 
-			if (userQuery == null)
-			{
-				throw new ResourceNotFoundException();
-			}
+      }
+      if (userListFilterCriteria.Roles != null && userListFilterCriteria.Roles.Any())
+      {
+        userQuery = userQuery.Where(u => u.UserRole.Any(ur => userListFilterCriteria.Roles.Contains(ur.RoleId)));
+      }
+      if (userListFilterCriteria.Status.HasValue)
+      {
+        userQuery = userQuery.Where(u => u.IsActive == userListFilterCriteria.Status.Value);
 
-			if (searchKeyword != null)
-			{
-				userQuery = userQuery.Where(u => u.Email.Contains(searchKeyword) || (u.FirstName + " " + u.LastName).ToLower().Contains(searchKeyword));
+      }
 
-			}
+      var sortedUserQuery = _dataContext.GetSortedResult(userQuery, userListFilterCriteria.SortBy, userListFilterCriteria.SortOrder);
+      var resultSetCriteria = new ResultSetCriteria
+      {
+        CurrentPage = userListFilterCriteria.PageIndex,
+        PageSize = userListFilterCriteria.PageSize
+      };
 
-			foreach (var filter in filters)
-			{
-				switch (filter.Key)
-				{
-					case "Roles":
-						var rolesFilter = (List<int>)filter.Value;
-						userQuery = userQuery.Where(u => u.UserRole.Any(ur => rolesFilter.Contains(ur.RoleId)));
-						break;
-					case "IsActive":
-						var isActive = (bool)filter.Value;
-						userQuery = userQuery.Where(u => u.IsActive == isActive);
-						break;
+      var pagedResult = await _dataContext.GetPagedResultAsync(sortedUserQuery, resultSetCriteria);
 
-				}
-			}
+      var userListResponseInfo = new UserListResponseInfo
+      {
+        CurrentPage = pagedResult.CurrentPage,
+        PageCount = pagedResult.PageCount,
+        RowCount = pagedResult.RowCount,
+        UserList = pagedResult.Results?.Select(u => new UserWithRolesDto
+        {
+          UserId = u.Id,
+          UserName = u.FirstName + " " + u.LastName,
+          FirstName = u.FirstName,
+          LastName = u.LastName,
+          Email = u.Email,
+          ContactNumber = u.MobileNumber,
+          Address = u.Address,
+          UserType = u.UserTypeId,
+          IsActive = u.IsActive,
+          RoleIds = u.UserRole.Select(ur => ur.RoleId).ToList()
+        }).ToList() ?? new List<UserWithRolesDto>()
+      };
+      return userListResponseInfo;
 
-			//if (rolesFilter != null && rolesFilter.Any())
-			//{
-			//	userQuery = userQuery.Where(u => u.UserRole.Any(ur => rolesFilter.Contains(ur.RoleId)));
-			//}
-			//if (isActive.HasValue)
-			//{
-			//	userQuery = userQuery.Where(u => u.IsActive == isActive.Value);
-			//}
+    }
 
-			var userDtoQuery = userQuery.Select(user => new UserWithRolesDto() 
-			{
-				UserId = user.Id,
-				UserName = user.FirstName + " " + user.LastName,
-				FirstName = user.FirstName,
-				LastName = user.LastName,
-				Email = user.Email,
-				ContactNumber = user.MobileNumber,
-				Address = user.Address,
-				UserType = user.UserTypeId,
-				IsActive = user.IsActive,
-				RoleIds = user.UserRole.Select(ur => ur.RoleId).ToList() 
-			});
-
-			switch (sortBy)
-			{
-				case "userEmail":
-					sortExpression = u => u.Email;
-					break;
-				case "userId":
-					sortExpression = u => u.UserId;
-					break;
-				case "userName":
-					sortExpression = u => u.UserName;
-					break;
-				default:
-					sortExpression = u => u.UserName;
-					break;
-			}
-
-			IOrderedQueryable<UserWithRolesDto> sortedUserDtoQuery;
-			if (sortOrder == "DESC")
-			{
-				sortedUserDtoQuery = userDtoQuery.OrderByDescending(sortExpression);
-			}
-			else
-			{
-				sortedUserDtoQuery = userDtoQuery.OrderBy(sortExpression);
-			}
-
-			var currentPage = userListFilterCriteria.PageIndex;
-			var pageSize = userListFilterCriteria.PageSize;
-			var skipCount = (currentPage - 1) * pageSize;
-			var rowCount = await sortedUserDtoQuery.CountAsync();
-			var userDtoList = await sortedUserDtoQuery.Skip(skipCount).Take(pageSize).ToListAsync();
-			var pageCount = (double)rowCount / pageSize;
-
-			userListResponseInfo.CurrentPage = currentPage;
-			userListResponseInfo.PageCount = (int)Math.Ceiling(pageCount);
-			userListResponseInfo.RowCount = rowCount;
-			userListResponseInfo.UserList = userDtoList ?? new List<UserWithRolesDto>(); 
-
-			return userListResponseInfo;
-
-		}
-
-		public async Task<UserDetails> GetUserAsync(int userId)
+    public async Task<UserDetails> GetUserAsync(int userId)
 		{
 			var user = await _dataContext.User
 					.Include(u => u.UserRole)

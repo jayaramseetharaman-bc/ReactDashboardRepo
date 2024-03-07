@@ -10,8 +10,8 @@ namespace BrickendonDashboard.Domain.Dtos
   public class UserListFilterCriteria : BaseFilterCriteria
   {
 		[FromQuery]
-		public List<int>? SearchByRoles { get; set; }
+		public List<int>? Roles { get; set; }
     [FromQuery]
-    public bool? SearchByStatus { get; set; }
+    public bool? Status { get; set; }
 	}
 }

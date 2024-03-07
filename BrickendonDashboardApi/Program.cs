@@ -27,6 +27,7 @@ builder.Services.AddControllers();
 builder.Configuration.AddJsonFile("appsettings.json");
 builder.Services.AddScoped<IDateTimeService, DateTimeService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRolesService, RoleService>();
 builder.Services.AddScoped<RequestContext>();
 builder.Services.AddScoped<IDataContext, DataContext>();
 builder.Services.AddDbContext<DataContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnection")));
