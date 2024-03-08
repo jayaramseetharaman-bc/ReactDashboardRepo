@@ -38,7 +38,7 @@ namespace BrickendonDashboardApi.Controllers
     ///
     /// </remarks>
 
-    [HttpGet("userList")]
+    [HttpGet("data")]
     [SwaggerOperation(Tags = new[] { "Users" })]
     [ProducesResponseType(typeof(UserListResponseInfo), 200)]
     public async Task<UserListResponseInfo> GetUsersList([FromQuery] UserListFilterCriteria userListFilterCriteria)
@@ -66,8 +66,8 @@ namespace BrickendonDashboardApi.Controllers
 		/// </remarks>
 		[HttpGet]
 		[SwaggerOperation(Tags = new[] { "Users" })]
-		[ProducesResponseType(typeof(UserDetails), 200)]
-		public async Task<UserDetails> GetUser([FromQuery(Name = "user-id")] int userId)
+		[ProducesResponseType(typeof(UserDto), 200)]
+		public async Task<UserDto> GetUser([FromQuery(Name = "user-id")] string userId)
 		{
 			return await _userService.GetUserAsync(userId);
 		}
@@ -102,7 +102,7 @@ namespace BrickendonDashboardApi.Controllers
 
 		[HttpPost]
     [SwaggerOperation(Tags = new[] { "Users" })]
-    [ProducesResponseType(typeof(UserListResponseInfo), 200)]
+    [ProducesResponseType(typeof(UserResponseInfo), 200)]
     public async Task<UserResponseInfo> CreateUser(UserRequestInfo userRequestInfo)
     {
       return await _userService.CreateUserAsync(userRequestInfo);
@@ -139,31 +139,31 @@ namespace BrickendonDashboardApi.Controllers
 
     [HttpPut]
     [SwaggerOperation(Tags = new[] { "Users" })]
-    [ProducesResponseType(typeof(UserListResponseInfo), 200)]
-    public async Task<UserResponseInfo> UpdateUser([FromQuery(Name = "user-id")] int userId, UserEditRequestInfo userEditRequestInfo)
+    [ProducesResponseType(typeof(UserResponseInfo), 200)]
+    public async Task<UserResponseInfo> UpdateUser([FromQuery(Name = "user-id")] string userId, UserEditRequestInfo userEditRequestInfo)
     {
       return await _userService.UpdateUserAsync(userId, userEditRequestInfo);
     }
 
-    /// <summary>
-    /// Delete an existing user 
-    /// </summary>
-    /// <response  code="200">Ok</response>
-    /// <response  code="401">Unauthorised</response>
-    /// <response  code="403">Forbidden</response>
-    /// <response  code="404">Not found</response>
-    /// <response  code="400">Bad request.
-    /// </response>
-    /// <remarks>
-    /// Sample request:
-    ///
-    ///     Delete /users/userId
-    ///
-    /// </remarks>
+		/// <summary>
+		/// Delete an existing user 
+		/// </summary>
+		/// <response  code="200">Ok</response>
+		/// <response  code="401">Unauthorised</response>
+		/// <response  code="403">Forbidden</response>
+		/// <response  code="404">Not found</response>
+		/// <response  code="400">Bad request.
+		/// </response>
+		/// <remarks>
+		/// Sample request:
+		///
+		///     Delete /users/user-id
+		///
+		/// </remarks>
 
-    [HttpDelete]
+		[HttpDelete]
     [SwaggerOperation(Tags = new[] { "Users" })]
-    public async Task DeleteUser([FromQuery] int userId)
+    public async Task DeleteUser([FromQuery(Name = "user-id")] string userId)
     {
       await _userService.DeleteUser(userId);
 
@@ -183,7 +183,7 @@ namespace BrickendonDashboardApi.Controllers
 		///
 		///     Get /users/user-exist?user-id=user@mail.com
 		/// </remarks>
-		[HttpGet("user-exist")]
+		[HttpGet("is-exist")]
 		[SwaggerOperation(Tags = new[] { "User" })]
 		[ProducesResponseType(typeof(bool), 200)]
 		public async Task<bool> IsUserExistAsync([FromQuery(Name = "user-id")] string userId)

@@ -10,7 +10,7 @@ namespace BrickendonDashboard.Domain.Dtos
   {
     public string? SearchKeyword { get; set; } = null;
 
-    public string? SortBy { get; set; } = "userName";
+    public string? SortBy { get; set; } = null;
 
     public string? SortOrder { get; set; } = "ASC";
 

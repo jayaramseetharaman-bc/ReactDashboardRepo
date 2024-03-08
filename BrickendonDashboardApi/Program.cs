@@ -8,6 +8,7 @@ using BrickendonDashboard.Shared.Contracts;
 using BrickendonDashboard.Shared.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using static BrickendonDashboard.Domain.Dtos.ApplicationConfigurationInfo;
 
 
@@ -33,7 +34,30 @@ builder.Services.AddScoped<IDataContext, DataContext>();
 builder.Services.AddDbContext<DataContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnection")));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+	// Add any required security definitions
+	c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme()
+	{
+		In = ParameterLocation.Header,
+		Name = "X-API-KEY",
+		Type = SecuritySchemeType.ApiKey,
+	});
+	var openApiSecuritySchema = new OpenApiSecurityScheme()
+	{
+		Reference = new OpenApiReference
+		{
+			Type = ReferenceType.SecurityScheme,
+			Id = "ApiKey"
+		},
+		In = ParameterLocation.Header
+	};
+	var openApiSecurityRequirement = new OpenApiSecurityRequirement
+				{
+					 { openApiSecuritySchema, new List<string>() }
+				};
+	c.AddSecurityRequirement(openApiSecurityRequirement);
+});
 builder.Services.AddSingleton(s =>
 {
   ApplicationConfigurationInfo appConfigInfo = new ApplicationConfigurationInfo()

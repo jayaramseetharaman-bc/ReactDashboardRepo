@@ -8,7 +8,7 @@ namespace BrickendonDashboard.Domain.Dtos
 {
   public class UserListResponseInfo :PaginationInfo
   {
-    public List<UserWithRolesDto> UserList { get; set; }
+    public List<UserDto> UserList { get; set; }
   }
 
   public class UserDto
@@ -22,17 +22,8 @@ namespace BrickendonDashboard.Domain.Dtos
     public string Email { get; set; }
     public int UserType { get; set; }
     public bool IsActive { get; set; }
-
-  }
-
-  public class UserDetails
-  {
-    public UserDto UserData { get; set; }
-    public List<int> RoleIds { get; set; }
-	}
-
-  public class UserWithRolesDto: UserDto
-  {
 		public List<int> RoleIds { get; set; }
 	}
+
+ 
 }

@@ -10,10 +10,10 @@ namespace BrickendonDashboard.Domain.Contracts
   public interface IUserService
   {
     Task<UserListResponseInfo> GetUsersWithPaginationAsync(UserListFilterCriteria userListFilterCriteria);
-    Task<UserDetails> GetUserAsync(int userId);
-		Task DeleteUser(int userId);
+    Task<UserDto> GetUserAsync(string userId);
+		Task DeleteUser(string userId);
     Task<UserResponseInfo> CreateUserAsync(UserRequestInfo userRequestInfo);
-    Task<UserResponseInfo> UpdateUserAsync(int userId,UserEditRequestInfo userRequestInfo);
+    Task<UserResponseInfo> UpdateUserAsync(string userId,UserEditRequestInfo userRequestInfo);
 
 		Task<bool> IsUserExist(string userName);
 

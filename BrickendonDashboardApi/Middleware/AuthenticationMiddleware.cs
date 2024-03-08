@@ -31,7 +31,7 @@ namespace BrickendonDashboard.Api.Middleware
     {
       var apiKey = context.Request.Headers["X-API-Key"];
       var bearerToken = context.Request.Headers["Authorization"].FirstOrDefault();
-      requestContext.apiKey = apiKey;
+      requestContext.ApiKey = apiKey;
 
 
       if (string.IsNullOrWhiteSpace(bearerToken) && (string.IsNullOrEmpty(apiKey) || (apiKey != _appConfig.ApiKey)))
@@ -47,9 +47,9 @@ namespace BrickendonDashboard.Api.Middleware
 
           if (token!= null)
           {
-            var IsValidToken = await ValidateMsToken(token,_appConfig.JwtTokenValidationInfo.Audience,_appConfig.JwtTokenValidationInfo.Issuer);
+            var isValidToken = await ValidateMsToken(token,_appConfig.JwtTokenValidationInfo.Audience,_appConfig.JwtTokenValidationInfo.Issuer);
 
-            if (!IsValidToken)
+            if (!isValidToken)
             {
               throw new UnauthorizedAccessException();
             }
@@ -59,10 +59,10 @@ namespace BrickendonDashboard.Api.Middleware
             throw new UnauthorizedAccessException();
           }
         }
-      }
-      await _next(context);
+				await _next(context);
+			}
     }
-    public async Task <bool> ValidateMsToken(string token,string audience,string issuer)
+    public async Task <bool> ValidateMsToken(string token, string audience, string issuer)
     {
       var tokenHandler = new JwtSecurityTokenHandler();
       var validationParameters = new TokenValidationParameters
