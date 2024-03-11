@@ -85,7 +85,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors();
+app.UseCors("AllowOrigin");
 app.UseMiddleware<CommonExceptionHandlerMiddleware>();
 app.UseMiddleware<AuthenticatorMiddleware>();
 app.UseAuthentication();
