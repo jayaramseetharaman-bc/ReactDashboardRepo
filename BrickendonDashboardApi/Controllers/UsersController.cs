@@ -22,23 +22,23 @@ namespace BrickendonDashboardApi.Controllers
       _userService = userService;
     }
 
-    /// <summary>
-    /// Allows a user to get user details based on pagination and data filters
-    /// </summary>
-    /// <response  code="200">Ok</response>
-    /// <response  code="401">Unauthorised</response>
-    /// <response  code="403">Forbidden</response>
-    /// <response  code="404">Not found</response>
-    /// <response  code="400">Bad request.
-    /// </response>
-    /// <remarks>
-    /// Sample request:
-    ///
-    ///     GET /users/userList
-    ///
-    /// </remarks>
+		/// <summary>
+		/// Allows a user to get user details based on pagination and data filters
+		/// </summary>
+		/// <response  code="200">Ok</response>
+		/// <response  code="401">Unauthorised</response>
+		/// <response  code="403">Forbidden</response>
+		/// <response  code="404">Not found</response>
+		/// <response  code="400">Bad request.
+		/// </response>
+		/// <remarks>
+		/// Sample request:
+		///
+		///     GET /users/data
+		///
+		/// </remarks>
 
-    [HttpGet("data")]
+		[HttpGet("data")]
     [SwaggerOperation(Tags = new[] { "Users" })]
     [ProducesResponseType(typeof(UserListResponseInfo), 200)]
     public async Task<UserListResponseInfo> GetUsersList([FromQuery] UserListFilterCriteria userListFilterCriteria)
@@ -181,7 +181,7 @@ namespace BrickendonDashboardApi.Controllers
 		/// <remarks>
 		/// Sample request:
 		///
-		///     Get /users/user-exist?user-id=user@mail.com
+		///     Get /users/is-exist?user-id=user@mail.com
 		/// </remarks>
 		[HttpGet("is-exist")]
 		[SwaggerOperation(Tags = new[] { "User" })]

@@ -2,6 +2,7 @@
 using BrickendonDashboard.Domain.Contracts;
 using BrickendonDashboard.Domain.Dtos;
 using BrickendonDashboard.Domain.Exceptions;
+using BrickendonDashboard.Shared.Domain.Constants;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -10,10 +11,12 @@ namespace BrickendonDashboard.Services
   public class UserService : IUserService
   {
     private readonly IDataContext _dataContext;
+		private readonly IHelperService _userHelper;
 
-    public UserService(IDataContext dataContext)
+		public UserService(IDataContext dataContext,IHelperService helperService)
     {
       _dataContext=dataContext;
+      _userHelper = helperService;
     }
 
 
@@ -84,6 +87,8 @@ namespace BrickendonDashboard.Services
 
     public async Task<UserDto> GetUserAsync(string userId)
 		{
+			_userHelper.ValidateUserName(userId);
+
 			var user = await _dataContext.User
 					.Include(u => u.UserRole)
 					.ThenInclude(ur => ur.Role)
@@ -92,7 +97,7 @@ namespace BrickendonDashboard.Services
 
 			if (user == null)
 			{
-				throw new ResourceNotFoundException();
+        throw new CustomException(ErrorConstant.ErrorInvalidUserId);
 			}
 
 			var userDto = new UserDto()
@@ -114,13 +119,17 @@ namespace BrickendonDashboard.Services
 
 		public async Task<UserResponseInfo> CreateUserAsync(UserRequestInfo userRequestInfo)
     {
-      var user = await _dataContext.User
+			var userName = userRequestInfo.Email.ToLower();
+
+			_userHelper.ValidateUserName(userName);
+
+			var user = await _dataContext.User
         .FirstOrDefaultAsync(u => !u.IsDeleted && u.Email == userRequestInfo.Email);
 
       if (user != null)
       {
-        throw new ResourceAlreadyExistsException("Email Already Exists");
-      }
+				throw new ResourceAlreadyExistsException();
+			}
       user = new User
       {
         FirstName = userRequestInfo.FirstName,
@@ -157,7 +166,14 @@ namespace BrickendonDashboard.Services
     }
 
 		public async Task<UserResponseInfo> UpdateUserAsync(string userId, UserEditRequestInfo userEditRequestInfo)
-		{
+    {
+      _userHelper.ValidateUserName(userId);
+
+			if (userId != userEditRequestInfo.userRequestInfo.Email)
+			{
+				throw new CustomException(ErrorConstant.ErrorInvalidUserId);
+			}
+
 			var user = await _dataContext.User
 					.FirstOrDefaultAsync(u => !u.IsDeleted && u.Email == userId);
 
@@ -215,11 +231,16 @@ namespace BrickendonDashboard.Services
 
 		public async Task DeleteUser(string userId)
     {
-      var user = await _dataContext.User
+			_userHelper.ValidateUserName(userId);
+
+			var user = await _dataContext.User
         .Include(x => x.UserRole)
         .Where(x => x.Email == userId).FirstOrDefaultAsync();
-      if (user != null)
-      {
+			
+      if (user == null)
+			{
+				throw new ResourceNotFoundException();
+			}
         user.IsDeleted = true;
         user.IsActive = false;
 
@@ -227,9 +248,8 @@ namespace BrickendonDashboard.Services
         {
           userRole.IsDeleted = true;
         }
-        await _dataContext.SaveChangesAsync();
 
-      }
+        await _dataContext.SaveChangesAsync();
 
     }
 
