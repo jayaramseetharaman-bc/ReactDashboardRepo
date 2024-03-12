@@ -8,7 +8,8 @@ namespace BrickendonDashboard.Domain.Contexts
 {
   public class RequestContext
   {
-    public int UserId { get; set; } = 1;
-    public string ApiKey { get; set; }
+    public int UserId { get; set; } = 0;
+    public string ApiKey { get; set; } 
+    public string UserName { get; set; }
   }
 }

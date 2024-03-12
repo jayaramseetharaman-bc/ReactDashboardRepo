@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BrickendonDashboard.Domain.Contracts
 {
-  public interface IRolesService
+  public interface IConfigurationService
   {
     public Task<List<RoleDetails>> GetAllRoles();
   }

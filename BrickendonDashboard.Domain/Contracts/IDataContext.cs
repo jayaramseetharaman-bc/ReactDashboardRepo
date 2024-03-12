@@ -21,7 +21,6 @@ namespace BrickendonDashboard.Domain.Contracts
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
-    public IQueryable<T> GetSortedResult<T>(IQueryable<T> query, string? sortBy, string? sortOrder) where T : User;
     public Task<PagedResultSet<T>> GetPagedResultAsync<T>(IQueryable<T> query, ResultSetCriteria resultSetCriteria);
 
   }

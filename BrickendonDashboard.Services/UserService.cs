@@ -53,7 +53,7 @@ namespace BrickendonDashboard.Services
 
       }
 
-      var sortedUserQuery = _dataContext.GetSortedResult(userQuery, userListFilterCriteria.SortBy, userListFilterCriteria.SortOrder);
+      var sortedUserQuery = GetSortedResult(userQuery, userListFilterCriteria.SortBy, userListFilterCriteria.SortOrder);
       var resultSetCriteria = new ResultSetCriteria
       {
         CurrentPage = userListFilterCriteria.PageIndex,
@@ -259,5 +259,19 @@ namespace BrickendonDashboard.Services
 
 			return user != null;
 		}
-	}
+    private static IQueryable<T> GetSortedResult<T>(IQueryable<T> query, string? sortBy, string? sortOrder) where T : User
+    {
+      switch (sortBy)
+      {
+        case "email":
+          return sortOrder == "DESC" ? query.OrderByDescending(u => u.Email) : query.OrderBy(u => u.Email);
+        case "userId":
+          return sortOrder == "DESC" ? query.OrderByDescending(u => u.Id) : query.OrderBy(u => u.Id);
+        case "userName":
+          return sortOrder == "DESC" ? query.OrderByDescending(u => u.FirstName + " " + u.LastName) : query.OrderBy(u => u.FirstName + " " + u.LastName);
+        default:
+          return query.OrderBy(u => u.FirstName + " " + u.LastName);
+      }
+    }
+  }
 }

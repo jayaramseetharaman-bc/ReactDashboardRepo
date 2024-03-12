@@ -1,4 +1,6 @@
-﻿using BrickendonDashboard.Domain.Contexts;
+﻿using Azure;
+using BrickendonDashboard.Domain.Contexts;
+using BrickendonDashboard.Domain.Contracts;
 using BrickendonDashboard.Domain.Dtos;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
@@ -13,6 +15,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using static System.Net.WebRequestMethods;
+using RequestContext = BrickendonDashboard.Domain.Contexts.RequestContext;
 
 namespace BrickendonDashboard.Api.Middleware
 {
@@ -20,11 +23,13 @@ namespace BrickendonDashboard.Api.Middleware
   {
      private RequestDelegate _next;
      private readonly ApplicationConfigurationInfo _appConfig;
+     private readonly IServiceProvider _serviceProvider;
 
-    public AuthenticatorMiddleware(RequestDelegate next, ApplicationConfigurationInfo appConfig)
+    public AuthenticatorMiddleware(RequestDelegate next, ApplicationConfigurationInfo appConfig, IServiceProvider serviceProvider)
     {
       _next=next;
       _appConfig=appConfig;
+      _serviceProvider=serviceProvider;
     }
 
     public async Task Invoke (HttpContext context, RequestContext requestContext)
@@ -47,7 +52,7 @@ namespace BrickendonDashboard.Api.Middleware
 
           if (token!= null)
           {
-            var isValidToken = await ValidateMsToken(token,_appConfig.JwtTokenValidationInfo.Audience,_appConfig.JwtTokenValidationInfo.Issuer);
+            var isValidToken = await ValidateMsToken(token,_appConfig.JwtTokenValidationInfo.Audience,_appConfig.JwtTokenValidationInfo.Issuer,requestContext);
 
             if (!isValidToken)
             {
@@ -59,10 +64,18 @@ namespace BrickendonDashboard.Api.Middleware
             throw new UnauthorizedAccessException();
           }
         }
+        if (!string.IsNullOrEmpty(requestContext.UserName))
+        {
+          var isValidUser = await CheckIfUserExists(requestContext.UserName);
+          if (!isValidUser)
+          {
+            throw new UnauthorizedAccessException();
+          }
+        }
 				await _next(context);
 			}
     }
-    public async Task <bool> ValidateMsToken(string token, string audience, string issuer)
+    public async Task <bool> ValidateMsToken(string token, string audience, string issuer, RequestContext requestContext)
     {
       var tokenHandler = new JwtSecurityTokenHandler();
       var validationParameters = new TokenValidationParameters
@@ -84,6 +97,13 @@ namespace BrickendonDashboard.Api.Middleware
       {
         SecurityToken validatedToken;
         var principal = tokenHandler.ValidateToken(token, validationParameters, out validatedToken);
+        var jwtSecurityToken = tokenHandler.ReadJwtToken(token);
+        var userNameclaims = jwtSecurityToken.Claims.FirstOrDefault(c => c.Type == "unique_name");
+        if (userNameclaims != null)
+        {
+          var userName = userNameclaims.Value;
+          requestContext.UserName = userName;
+        }
         return true;
       }
       catch (SecurityTokenExpiredException ex)
@@ -99,6 +119,17 @@ namespace BrickendonDashboard.Api.Middleware
 
       }
 
+    }
+    private async Task<bool> CheckIfUserExists(string userName)
+    {
+      bool isUserExists = false;
+      using (var scope = _serviceProvider.CreateScope())
+      {
+        var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+        isUserExists = await userService.IsUserExist(userName);
+      }
+
+      return isUserExists;
     }
 
   }

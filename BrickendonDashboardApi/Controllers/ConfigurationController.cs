@@ -9,15 +9,15 @@ namespace BrickendonDashboard.Api.Controllers
 {
   [EnableCors("AllowOrigin")]
   [ApiController]
-  [Route("users")]
-  public class RolesController
+  [Route("users/config")]
+  public class ConfigurationController
   {
-    private readonly ILogger<RolesController> _logger;
-    private readonly IRolesService _rolesService;
-    public RolesController(ILogger<RolesController> logger,IRolesService rolesService) 
+    private readonly ILogger<ConfigurationController> _logger;
+    private readonly IConfigurationService _configurationService;
+    public ConfigurationController(ILogger<ConfigurationController> logger,IConfigurationService configurationService) 
     {
       _logger = logger;
-      _rolesService = rolesService;
+      _configurationService = configurationService;
     }
     /// <summary>
     /// Allow the user to get role details 
@@ -31,7 +31,7 @@ namespace BrickendonDashboard.Api.Controllers
     /// <remarks>
     /// Sample request:
     ///
-    ///     GET /users/roles
+    ///     GET /users/config/roles
     ///
     /// </remarks>
 
@@ -40,7 +40,7 @@ namespace BrickendonDashboard.Api.Controllers
     [ProducesResponseType(typeof(List<RoleDetails>), 200)]
     public async Task <List<RoleDetails>> GetAllRoles()
     {
-      var roles = await _rolesService.GetAllRoles();
+      var roles = await _configurationService.GetAllRoles();
       return roles;
     }
   }

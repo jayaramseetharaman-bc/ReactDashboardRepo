@@ -48,23 +48,7 @@ namespace BrickendonDashboard.DbPersistence
       var skip = (currentPage - 1) * pageSize;
       result.Results = await query.Skip(skip).Take(pageSize).ToListAsync();
       return result;
-    }
-
-
-    public IQueryable<T> GetSortedResult<T> (IQueryable<T> query, string? sortBy,string? sortOrder) where T : User
-    {
-      switch (sortBy)
-      {
-        case "email":
-          return sortOrder == "DESC" ? query.OrderByDescending(u => u.Email) : query.OrderBy(u => u.Email);
-        case "userId":
-          return sortOrder == "DESC" ? query.OrderByDescending(u => u.Id) : query.OrderBy(u => u.Id);
-        case "userName":
-          return sortOrder == "DESC" ? query.OrderByDescending(u => u.FirstName + " " + u.LastName) : query.OrderBy(u => u.FirstName + " " + u.LastName);
-        default:
-          return  query.OrderBy(u => u.FirstName + " " + u.LastName);
-      }
-    }
+    } 
 
       public DbSet<User> User { get; set; }
 

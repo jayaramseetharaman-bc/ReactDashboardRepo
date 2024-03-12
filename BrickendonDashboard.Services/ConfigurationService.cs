@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace BrickendonDashboard.Services
 {
-  public class RoleService : IRolesService
+  public class ConfigurationService : IConfigurationService
   {
     private IDataContext _dataContext;
-    public RoleService(IDataContext dataContext)
+    public ConfigurationService(IDataContext dataContext)
     {
       _dataContext = dataContext;
 
