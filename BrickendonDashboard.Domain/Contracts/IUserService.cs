@@ -16,6 +16,8 @@ namespace BrickendonDashboard.Domain.Contracts
     Task<UserResponseInfo> UpdateUserAsync(string userId,UserEditRequestInfo userRequestInfo);
 
 		Task<bool> IsUserExist(string userName);
+    Task<bool> IsUserActive(string userName);
 
-	}
+
+  }
 }

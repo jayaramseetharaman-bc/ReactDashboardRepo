@@ -23,11 +23,13 @@ namespace BrickendonDashboard.Api.Middleware
   {
      private RequestDelegate _next;
      private readonly ApplicationConfigurationInfo _appConfig;
+    private readonly IServiceProvider _serviceProvider;
 
-    public AuthenticatorMiddleware(RequestDelegate next, ApplicationConfigurationInfo appConfig)
+    public AuthenticatorMiddleware(RequestDelegate next, ApplicationConfigurationInfo appConfig, IServiceProvider serviceProvider)
     {
       _next=next;
       _appConfig=appConfig;
+      _serviceProvider=serviceProvider;
     }
 
     public async Task Invoke (HttpContext context, RequestContext requestContext)
@@ -62,7 +64,15 @@ namespace BrickendonDashboard.Api.Middleware
             throw new UnauthorizedAccessException();
           }
         }
-				await _next(context);
+        if (!string.IsNullOrEmpty(requestContext.UserName))
+        {
+          var isValidUser = await CheckIfUserExists(requestContext.UserName);
+          if (!isValidUser)
+          {
+            throw new UnauthorizedAccessException();
+          }
+        }
+        await _next(context);
 			}
     }
     public async Task <bool> ValidateMsToken(string token, string audience, string issuer, RequestContext requestContext)
@@ -108,6 +118,17 @@ namespace BrickendonDashboard.Api.Middleware
         return false;
 
       }
+    }
+    private async Task<bool> CheckIfUserExists(string userName)
+    {
+      bool isUserExists = false;
+      using (var scope = _serviceProvider.CreateScope())
+      {
+        var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+        isUserExists = await userService.IsUserActive(userName);
+      }
+
+      return isUserExists;
     }
   }
 }

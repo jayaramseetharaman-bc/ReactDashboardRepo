@@ -259,6 +259,12 @@ namespace BrickendonDashboard.Services
 
 			return user != null;
 		}
+    public async Task<bool> IsUserActive(string userName)
+    {
+      var user = await _dataContext.User.FirstOrDefaultAsync(u => !u.IsDeleted  && u.IsActive == true && u.Email.ToLower() == userName.ToLower());
+
+      return user != null;
+    }
     private static IQueryable<T> GetSortedResult<T>(IQueryable<T> query, string? sortBy, string? sortOrder) where T : User
     {
       switch (sortBy)
